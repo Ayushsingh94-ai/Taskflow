@@ -4,9 +4,9 @@ import { getTasks, createTask, deleteTask, getEmployees } from '../utils/api';
 import toast from 'react-hot-toast';
 import {
   LayoutDashboard, CheckSquare, Users, BarChart3,
-  Settings, ChevronLeft, ChevronRight, Plus, Bell,
+  ChevronLeft, ChevronRight, Plus, Bell,
   Search, LogOut, Calendar, User, Trash2, X,
-  CheckCircle2, Clock, AlertCircle, TrendingUp
+  CheckCircle2, Clock, TrendingUp
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -17,6 +17,7 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
   const [filter, setFilter] = useState('all');
+  const [activeNav, setActiveNav] = useState('dashboard');
   const [formData, setFormData] = useState({
     title: '', description: '', assignedTo: '', priority: 'medium', dueDate: ''
   });
@@ -80,10 +81,10 @@ const AdminDashboard = () => {
   ];
 
   const navItems = [
-    { icon: LayoutDashboard, label: 'Dashboard' },
-    { icon: CheckSquare, label: 'Tasks' },
-    { icon: Users, label: 'Employees' },
-    { icon: BarChart3, label: 'Reports' },
+    { icon: LayoutDashboard, label: 'Dashboard', id: 'dashboard' },
+    { icon: CheckSquare, label: 'Tasks', id: 'tasks' },
+    { icon: Users, label: 'Employees', id: 'employees' },
+    { icon: BarChart3, label: 'Reports', id: 'reports' },
   ];
 
   if (loading) return (
@@ -96,40 +97,37 @@ const AdminDashboard = () => {
     <div className="flex h-screen overflow-hidden bg-[#0F1117]">
       {/* Sidebar */}
       <aside className={`flex h-screen flex-col bg-[#13151F] border-r border-white/5 transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
-        {/* Logo */}
         <div className="flex h-16 items-center justify-between border-b border-white/5 px-4">
-          {!collapsed && (
+          {!collapsed ? (
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 shadow-lg shadow-blue-500/30">
                 <CheckSquare className="h-5 w-5 text-white" />
               </div>
               <span className="text-lg font-semibold text-white">TaskFlow</span>
             </div>
-          )}
-          {collapsed && (
+          ) : (
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 mx-auto">
               <CheckSquare className="h-5 w-5 text-white" />
             </div>
           )}
         </div>
 
-        {/* New Task Button */}
         <div className="p-4">
           <button
             onClick={() => setShowForm(true)}
-            className={`flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-blue-500/25 transition-all hover:bg-blue-500 w-full`}
+            className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-blue-500/25 transition-all hover:bg-blue-500 w-full"
           >
             <Plus className="h-4 w-4" />
             {!collapsed && <span>New Task</span>}
           </button>
         </div>
 
-        {/* Nav */}
         <nav className="flex-1 space-y-1 px-3">
           {navItems.map((item) => (
             <button
-              key={item.label}
-              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-400 hover:bg-white/5 hover:text-white transition-colors w-full"
+              key={item.id}
+              onClick={() => setActiveNav(item.id)}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors w-full ${activeNav === item.id ? 'bg-blue-600/20 text-blue-400' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
             >
               <item.icon className="h-5 w-5 shrink-0" />
               {!collapsed && <span>{item.label}</span>}
@@ -137,7 +135,6 @@ const AdminDashboard = () => {
           ))}
         </nav>
 
-        {/* Bottom */}
         <div className="border-t border-white/5 p-3">
           {!collapsed && (
             <div className="flex items-center gap-3 px-3 py-2 mb-2">
@@ -170,7 +167,7 @@ const AdminDashboard = () => {
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Header */}
         <header className="flex h-16 items-center justify-between border-b border-white/5 bg-[#13151F]/80 backdrop-blur-sm px-6">
-          <h1 className="text-xl font-semibold text-white">Dashboard</h1>
+          <h1 className="text-xl font-semibold text-white capitalize">{activeNav}</h1>
           <div className="flex items-center gap-4">
             <div className="relative hidden md:block">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
@@ -196,94 +193,206 @@ const AdminDashboard = () => {
           </div>
         </header>
 
-        {/* Content */}
         <main className="flex-1 overflow-y-auto p-6">
           <div className="mx-auto max-w-7xl space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-white">Welcome back, {user?.name?.split(' ')[0]} 👋</h2>
-              <p className="mt-1 text-zinc-400">Here's what's happening with your team today.</p>
-            </div>
 
-            {/* Stats */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {stats.map((stat) => (
-                <div key={stat.title} className="relative overflow-hidden rounded-xl border border-white/5 bg-[#13151F] p-6 shadow-lg">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} pointer-events-none`} />
-                  <div className="relative flex items-center justify-between mb-4">
-                    <p className="text-sm font-medium text-zinc-400">{stat.title}</p>
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${stat.iconBg}`}>
-                      <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <div className="text-3xl font-bold text-white">{stat.value}</div>
-                    <p className="mt-1 text-xs text-zinc-500">{stat.change}</p>
-                  </div>
+            {/* Dashboard & Tasks view */}
+            {(activeNav === 'dashboard' || activeNav === 'tasks') && (
+              <>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Welcome back, {user?.name?.split(' ')[0]} 👋</h2>
+                  <p className="mt-1 text-zinc-400">Here's what's happening with your team today.</p>
                 </div>
-              ))}
-            </div>
 
-            {/* Tasks */}
-            <div className="rounded-xl border border-white/5 bg-[#13151F] shadow-lg">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 border-b border-white/5">
-                <h3 className="text-lg font-semibold text-white">All Tasks</h3>
-                <div className="flex flex-wrap gap-2">
-                  {['all', 'pending', 'in-progress', 'completed'].map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => setFilter(status)}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${filter === status ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25' : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white'}`}
-                    >
-                      {status === 'all' ? 'All' : status === 'in-progress' ? 'In Progress' : status.charAt(0).toUpperCase() + status.slice(1)}
-                    </button>
+                {/* Stats */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  {stats.map((stat) => (
+                    <div key={stat.title} className="relative overflow-hidden rounded-xl border border-white/5 bg-[#13151F] p-6 shadow-lg">
+                      <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} pointer-events-none`} />
+                      <div className="relative flex items-center justify-between mb-4">
+                        <p className="text-sm font-medium text-zinc-400">{stat.title}</p>
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${stat.iconBg}`}>
+                          <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
+                        </div>
+                      </div>
+                      <div className="relative">
+                        <div className="text-3xl font-bold text-white">{stat.value}</div>
+                        <p className="mt-1 text-xs text-zinc-500">{stat.change}</p>
+                      </div>
+                    </div>
                   ))}
                 </div>
-              </div>
-              <div className="p-6 space-y-3">
-                {filteredTasks.length === 0 ? (
-                  <div className="py-12 text-center text-zinc-500">
-                    <p className="text-4xl mb-3">📭</p>
-                    <p className="font-medium">No tasks found</p>
-                    <p className="text-sm mt-1">Create a new task to get started</p>
-                  </div>
-                ) : (
-                  filteredTasks.map(task => (
-                    <div key={task._id} className="group flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-4 transition-all hover:bg-white/5 hover:border-white/10">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2 mb-1">
-                          <h4 className="font-medium text-white truncate">{task.title}</h4>
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusConfig[task.status]?.class}`}>
-                            {statusConfig[task.status]?.label}
-                          </span>
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${priorityConfig[task.priority]?.class}`}>
-                            {priorityConfig[task.priority]?.label}
-                          </span>
-                        </div>
-                        <p className="text-sm text-zinc-500 line-clamp-1">{task.description}</p>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-zinc-500">
-                        {task.dueDate && (
-                          <div className="flex items-center gap-1.5">
-                            <Calendar className="h-4 w-4" />
-                            <span>{new Date(task.dueDate).toLocaleDateString()}</span>
-                          </div>
-                        )}
-                        <div className="flex items-center gap-1.5">
-                          <User className="h-4 w-4" />
-                          <span>{task.assignedTo?.name}</span>
-                        </div>
+
+                {/* Tasks Table */}
+                <div className="rounded-xl border border-white/5 bg-[#13151F] shadow-lg">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 border-b border-white/5">
+                    <h3 className="text-lg font-semibold text-white">All Tasks</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {['all', 'pending', 'in-progress', 'completed'].map((status) => (
                         <button
-                          onClick={() => handleDelete(task._id)}
-                          className="rounded-md p-1 opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:bg-red-500/10"
+                          key={status}
+                          onClick={() => setFilter(status)}
+                          className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${filter === status ? 'bg-blue-600 text-white' : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white'}`}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {status === 'all' ? 'All' : status === 'in-progress' ? 'In Progress' : status.charAt(0).toUpperCase() + status.slice(1)}
                         </button>
-                      </div>
+                      ))}
                     </div>
-                  ))
-                )}
-              </div>
-            </div>
+                  </div>
+                  <div className="p-6 space-y-3">
+                    {filteredTasks.length === 0 ? (
+                      <div className="py-12 text-center text-zinc-500">
+                        <p className="text-4xl mb-3">📭</p>
+                        <p className="font-medium">No tasks found</p>
+                        <p className="text-sm mt-1">Create a new task to get started</p>
+                      </div>
+                    ) : (
+                      filteredTasks.map(task => (
+                        <div key={task._id} className="group flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-4 transition-all hover:bg-white/5 hover:border-white/10">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-1">
+                              <h4 className="font-medium text-white truncate">{task.title}</h4>
+                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusConfig[task.status]?.class}`}>
+                                {statusConfig[task.status]?.label}
+                              </span>
+                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${priorityConfig[task.priority]?.class}`}>
+                                {priorityConfig[task.priority]?.label}
+                              </span>
+                            </div>
+                            <p className="text-sm text-zinc-500 line-clamp-1">{task.description}</p>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-zinc-500">
+                            {task.dueDate && (
+                              <div className="flex items-center gap-1.5">
+                                <Calendar className="h-4 w-4" />
+                                <span>{new Date(task.dueDate).toLocaleDateString()}</span>
+                              </div>
+                            )}
+                            <div className="flex items-center gap-1.5">
+                              <User className="h-4 w-4" />
+                              <span>{task.assignedTo?.name}</span>
+                            </div>
+                            <button
+                              onClick={() => handleDelete(task._id)}
+                              className="rounded-md p-1 opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:bg-red-500/10"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Employees View */}
+            {activeNav === 'employees' && (
+              <>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Team Members 👥</h2>
+                  <p className="mt-1 text-zinc-400">{employees.length} employee{employees.length !== 1 ? 's' : ''} in your workspace</p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-[#13151F] shadow-lg">
+                  <div className="p-6 border-b border-white/5">
+                    <h3 className="text-lg font-semibold text-white">All Employees</h3>
+                  </div>
+                  <div className="p-6 space-y-3">
+                    {employees.length === 0 ? (
+                      <div className="py-12 text-center text-zinc-500">
+                        <p className="text-4xl mb-3">👥</p>
+                        <p className="font-medium">No employees yet</p>
+                        <p className="text-sm mt-1">Employees will appear here after they register</p>
+                      </div>
+                    ) : (
+                      employees.map(emp => (
+                        <div key={emp._id} className="flex items-center gap-4 rounded-xl border border-white/5 bg-white/[0.02] p-4 hover:bg-white/5 transition-all">
+                          <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                            {emp.name?.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-white text-sm">{emp.name}</p>
+                            <p className="text-xs text-zinc-500">{emp.email}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full ring-1 ring-blue-500/30">
+                              {tasks.filter(t => t.assignedTo?._id === emp._id).length} tasks
+                            </span>
+                            <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-full ring-1 ring-emerald-500/30">
+                              {tasks.filter(t => t.assignedTo?._id === emp._id && t.status === 'completed').length} done
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Reports View */}
+            {activeNav === 'reports' && (
+              <>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Reports Overview 📊</h2>
+                  <p className="mt-1 text-zinc-400">Track progress across all tasks and employees</p>
+                </div>
+
+                {/* Report Stats */}
+                <div className="grid gap-4 md:grid-cols-3">
+                  {[
+                    { label: 'Total Tasks', value: tasks.length, color: 'text-blue-400', bg: 'bg-blue-500/20' },
+                    { label: 'Completed', value: tasks.filter(t => t.status === 'completed').length, color: 'text-emerald-400', bg: 'bg-emerald-500/20' },
+                    { label: 'Pending', value: tasks.filter(t => t.status === 'pending').length, color: 'text-amber-400', bg: 'bg-amber-500/20' },
+                  ].map((s, i) => (
+                    <div key={i} className="rounded-xl border border-white/5 bg-[#13151F] p-6">
+                      <div className={`w-10 h-10 ${s.bg} rounded-lg flex items-center justify-center mb-3`}>
+                        <BarChart3 className={`h-5 w-5 ${s.color}`} />
+                      </div>
+                      <p className="text-zinc-400 text-sm">{s.label}</p>
+                      <p className={`text-3xl font-bold ${s.color} mt-1`}>{s.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="rounded-xl border border-white/5 bg-[#13151F] shadow-lg">
+                  <div className="p-6 border-b border-white/5">
+                    <h3 className="text-lg font-semibold text-white">Task Status Report</h3>
+                  </div>
+                  <div className="p-6 space-y-3">
+                    {tasks.length === 0 ? (
+                      <div className="py-12 text-center text-zinc-500">
+                        <p className="text-4xl mb-3">📊</p>
+                        <p className="font-medium">No data yet</p>
+                      </div>
+                    ) : (
+                      tasks.map(task => (
+                        <div key={task._id} className="rounded-xl border border-white/5 bg-white/[0.02] p-4 hover:bg-white/5 transition-all">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="font-medium text-white text-sm">{task.title}</p>
+                              <p className="text-xs text-zinc-500 mt-1">
+                                Assigned to: <span className="text-zinc-300">{task.assignedTo?.name}</span>
+                                {task.dueDate && <span> · Due {new Date(task.dueDate).toLocaleDateString()}</span>}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusConfig[task.status]?.class}`}>
+                                {statusConfig[task.status]?.label}
+                              </span>
+                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${priorityConfig[task.priority]?.class}`}>
+                                {priorityConfig[task.priority]?.label}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </main>
       </div>
